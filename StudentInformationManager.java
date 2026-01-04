@@ -1,9 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -14,15 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-// import com.mongodb.ConnectionString;
-// import com.mongodb.MongoClientSettings;
-// import com.mongodb.MongoException;
-// import com.mongodb.ServerApi;
-// import com.mongodb.ServerApiVersion;
-// import com.mongodb.client.MongoClient;
-// import com.mongodb.client.MongoClients;
-// import com.mongodb.client.MongoDatabase;
-// import org.bson.Document;
+
 
 public class StudentInformationManager {
 
@@ -46,47 +35,7 @@ public class StudentInformationManager {
         }
     }
 
-    /* ===================== MONGODB CONNECTION ===================== */
-    static class MongoDBConnection {
-        // Lightweight in-memory replacement for MongoDB collection
-        // Removes the external MongoDB dependency so the project compiles
-        static class DBDocument {
-            private final Map<String, Object> data = new HashMap<>();
 
-            DBDocument(String key, Object value) {
-                data.put(key, value);
-            }
-
-            DBDocument append(String key, Object value) {
-                data.put(key, value);
-                return this;
-            }
-
-            Object get(String key) {
-                return data.get(key);
-            }
-        }
-
-        static class SimpleCollection {
-            private final java.util.List<DBDocument> storage = new java.util.ArrayList<>();
-
-            void insertOne(DBDocument doc) {
-                storage.add(doc);
-            }
-
-            void deleteOne(DBDocument query) {
-                Object id = query.get("id");
-                if (id == null) return;
-                storage.removeIf(d -> Objects.equals(d.get("id"), id));
-            }
-        }
-
-        private static final SimpleCollection COLLECTION = new SimpleCollection();
-
-        static SimpleCollection getCollection() {
-            return COLLECTION;
-        }
-    }
 
     /* ===================== DSA MANAGER ===================== */
     static class StudentManager {
@@ -96,20 +45,12 @@ public class StudentInformationManager {
         Queue<Student> admissionQueue = new LinkedList<>();   // FIFO
         Stack<Student> undoStack = new Stack<>();              // LIFO
 
-    MongoDBConnection.SimpleCollection collection =
-        MongoDBConnection.getCollection();
 
         void addStudent(Student s) {
             studentList.add(s);          // LinkedList
             admissionQueue.offer(s);     // Queue
             undoStack.push(s);           // Stack
 
-        MongoDBConnection.DBDocument doc = new MongoDBConnection.DBDocument("id", s.id)
-            .append("name", s.name)
-            .append("age", s.age)
-            .append("department", s.department);
-
-        collection.insertOne(doc);
         }
 
         Student processAdmission() {
@@ -121,7 +62,6 @@ public class StudentInformationManager {
 
             Student s = undoStack.pop();  // LIFO
             studentList.remove(s);
-            collection.deleteOne(new MongoDBConnection.DBDocument("id", s.id));
             return s;
         }
 
